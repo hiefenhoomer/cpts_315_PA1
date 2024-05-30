@@ -1,8 +1,10 @@
 from itertools import combinations
+from Buckets import Buckets
 
 max_tuple_size = 2
 min_support = 1
 file_name = 'text/hw1.txt'
+buckets_size = 11
 
 
 # Convert lines to baskets.
@@ -116,123 +118,56 @@ def get_frequent_tuples(file, tuple_size, min_support):
     return tuple_dict_list
 
 
-def get_confidence(tuple_dict_list):
-    tuples_confidence_dict_list = []
-
-    # There is no support rule to find at index 0, as such, we need to start from index 1.
-    # For each dictionary in the list...
-    for i in range(1, len(tuple_dict_list)):
-        # Instantiate a dictionary to prevent data loss.
-        confidence_rule_dict = {}
-
-        # For each key tuple in the dictionary of each list...
-        for key_tup in tuple_dict_list[i].keys():
-            # Convert each tuple to a list.
-            key_list = list(key_tup)
-            # Get each combination in the key for use in our tuple_dict_list.
-            subkey_list = create_tuples_from_list(key_list, i)
-
-            # For each combination in the key...
-            for subkey_tup in subkey_list:
-                # Create composite key for use later.
-                confidence_key = (key_tup, subkey_tup)
-                # Get the absolute support of the frequent combination of items.
-                key_sup = tuple_dict_list[i][key_tup]
-                # Get the absolute support of the sub-combinations frequently visited together.
-                subkey_sup = tuple_dict_list[i - 1][subkey_tup]
-                # associate the composite key used in the confidence_rule_dict with the support rule.
-                confidence_rule_dict[confidence_key] = key_sup / subkey_sup
-        # Append the confidence tuple dictionary to the tuples_confidence_dict_list.
-        tuples_confidence_dict_list.append(confidence_rule_dict)
-
-    return tuples_confidence_dict_list
-    pass
+def create_buckets(tuples, bucket_size):
+    tuple_dict_0 = tuples[0]
+    tuple_list = pairs_from_tuples(tuple_dict_0)
+    buckets = Buckets(bucket_size, tuple_list)
+    return buckets
 
 
-# Sort the top 5 confidence rules at each dictionary in the list except the dictionary starting at index 0.
-# There is no support to associate with items at index 0 - these are our base items.
-def get_top_5_confidence(confidence_dict_list):
-    top_5_confidence_nested_lists = []
+def put_pairs_in_buckets(file, buckets):
+    with open(file, 'r') as f:
+        for line in f:
+            basket = line_to_basket(line)
+            tuples = create_tuples_from_list(basket, 2)
+            tuples = tuple_strs_to_ints(tuples)
+            for tup in tuples:
+                buckets.insert_pair(tup)
 
-    # While iterating over the confidence_dict_list index i...
-    for i in range(len(confidence_dict_list)):
-        # Instantiate the top 5 confidence list at this level.
-        top_5_confidence_list = []
-
-        # For each composite key in confidence_dict_list...
-        for key_tup in confidence_dict_list[i].keys():
-            # Get the confidence rule associated with this key. This was probably redundant. Not gonna worry about it.
-            key_and_confidence_tup = (key_tup, confidence_dict_list[i][key_tup])
-            # If the length of our list is less than 5 append the key and confidence rule.
-            if len(top_5_confidence_list) < 5:
-                top_5_confidence_list.append(key_and_confidence_tup)
-            # Otherwise, if the lowest key's associated value in the list is less than the current key and confidence
-            # rule, then replace the lowest key.
-            elif top_5_confidence_list[-1][1] < key_and_confidence_tup[1]:
-                top_5_confidence_list[-1] = key_and_confidence_tup
-            # Sort the list. If we replaced a key and the current key is the greatest in the list, then it will filter
-            # to the top.
-            top_5_confidence_list = sorted(top_5_confidence_list, key=lambda tup: tup[1], reverse=True)
-        top_5_confidence_nested_lists.append(top_5_confidence_list)
-
-    return top_5_confidence_nested_lists
+        print (buckets.get_buckets())
+        return buckets
 
 
-def format_top_5_confidence_lists(top_5_confidence_nested_lists):
-    top_5_formatted_lists = []
-    for unformatted_list in top_5_confidence_nested_lists:
-        formatted_list = []
-        # Almost there! For each tuple in the unformatted list...
-        for tup in unformatted_list:
-            # Example: (composite_key, confidence_value) = ((('smeckledorf', 'bamboozled'), 'something else') 0.124...)
-            # The example values above reflects the types of data found in each tuple.
-            key_tup, confidence_value = tup
-            # Convert both the key and its associated subkey to arrays. The subkey represents items typically associated
-            # with the items in the primary key.
-            key_list = list(key_tup[0]) if isinstance(key_tup[0], tuple) else [key_tup[0]]
-            subkey_list = list(key_tup[1]) if isinstance(key_tup[1], tuple) else [key_tup[1]]
-            # The line below starts the frequently visited items lexicographically
-            formatted_item = subkey_list
-            # For each item in the key list not in the formatted_item list, append the item.
-            for item in key_list:
-                if item not in formatted_item:
-                    formatted_item.append(item)
-            # Add the confidence value to the formatted item.
-            formatted_item.append(confidence_value)
-            # Add the formatted item list to the formatted list of lists.
-            formatted_list.append(formatted_item)
-        # Add the list of lists to the list of list of lists. That's a little convoluted, isn't it?
-        top_5_formatted_lists.append(formatted_list)
-    return top_5_formatted_lists
+def tuple_strs_to_ints(tuples):
+    tuples_list = list(tuples)
+    int_tuples = []
+    for tup in tuples_list:
+        tup_list = list(tup)
+        int_tup_list = []
+        for value in tup_list:
+            int_tup_list.append(int(value))
+        int_tuples.append(tuple(int_tup_list))
+
+    return int_tuples
 
 
-def generate_strings(formatted_top_5_confidence_lists):
-    # Let's make this modular. Start at letter 'A'.
-    start_letter = ord('A')
-    # Instantiate the formatted string.
-    formatted_str = ''
+def pairs_from_tuples(tuple_dict):
+    pairs = create_tuples_from_list(tuple_dict.keys(), 2)
+    formatted_list = []
+    for tup in pairs:
+        a, b = tup[0], tup[1]
+        combined_tuple = a + b
+        val_1, val_2 = combined_tuple
+        val_1 = int(val_1)
+        val_2 = int(val_2)
+        integer_vals = (val_1, val_2)
+        formatted_list.append(integer_vals)
 
-    # For index i in the list of list of lists...
-    for i in range(len(formatted_top_5_confidence_lists)):
-        # Format the string with 'OUTPUT'.
-        formatted_str += 'OUTPUT ' + chr(start_letter + i) + ':\n'
-        # For index j in the list of lists...
-        for j in range(len(formatted_top_5_confidence_lists[i])):
-            # For item k in the list...
-            for k in formatted_top_5_confidence_lists[i][j]:
-                # k in this context can be something like FRO1234 or 0.123.
-                formatted_str += str(k) + ' '
-            # Add formatting.
-            formatted_str += '\n'
-
-    return formatted_str
+    return formatted_list
 
 
 # Driver code to run the program.
 if __name__ == '__main__':
     tuple_dict_list = get_frequent_tuples(file_name, max_tuple_size, min_support)
-    print(tuple_dict_list)
-    confidence_dict_list = get_confidence(tuple_dict_list)
-    top_5_confidence_lists = get_top_5_confidence(confidence_dict_list)
-    formatted_top_5_confidence_lists = format_top_5_confidence_lists(top_5_confidence_lists)
-    print(generate_strings(formatted_top_5_confidence_lists))
+    buckets = create_buckets(tuple_dict_list, buckets_size)
+    put_pairs_in_buckets(file_name, buckets)
