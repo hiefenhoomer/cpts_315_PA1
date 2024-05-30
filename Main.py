@@ -1,5 +1,6 @@
 from itertools import combinations
 from Buckets import Buckets
+from tabulate import tabulate
 
 max_tuple_size = 2
 min_support = 1
@@ -133,10 +134,46 @@ def put_pairs_in_buckets(file, buckets):
             tuples = tuple_strs_to_ints(tuples)
             for tup in tuples:
                 buckets.insert_pair(tup)
-
-        print (buckets.get_buckets())
         return buckets
 
+
+def format_buckets_display(buckets):
+    indices, corresponding_pairs, items, frequencies = buckets.get_buckets()
+    items = format_pairs_for_table(items)
+    head = ['Bucket', 'Corresponding Pairs', 'Pairs In Bucket', 'Total In Bucket']
+    table_data = []
+    for idx in indices:
+        row = [idx, corresponding_pairs[idx], items[idx], frequencies[idx]]
+        table_data.append(row)
+    return tabulate(table_data, headers=head, tablefmt='grid')
+
+
+def format_frequent_buckets(buckets, support):
+    indices, corresponding_pairs, items, frequencies = buckets.get_buckets()
+    items = format_pairs_for_table(items)
+    head = ['Bucket', 'Corresponding Pairs', 'Pairs In Bucket', 'Total In Bucket']
+    table_data = []
+    for idx in indices:
+        if frequencies[idx] < support:
+            continue
+        row = [idx, corresponding_pairs[idx], items[idx], frequencies[idx]]
+        table_data.append(row)
+    return tabulate(table_data, headers=head, tablefmt='grid')
+
+
+def format_pairs_for_table(pair_list):
+    formatted_list = []
+    for pairs in pair_list:
+        if len(pairs) == 0:
+            formatted_list.append('N/A')
+            continue
+
+        pair_string = ''
+        for pair in pairs:
+            pair, frequency = pair[0], pair[1]
+            pair_string += str(pair) + ': ' + str(frequency) + ', '
+        formatted_list.append(pair_string)
+    return formatted_list
 
 def tuple_strs_to_ints(tuples):
     tuples_list = list(tuples)
@@ -170,4 +207,8 @@ def pairs_from_tuples(tuple_dict):
 if __name__ == '__main__':
     tuple_dict_list = get_frequent_tuples(file_name, max_tuple_size, min_support)
     buckets = create_buckets(tuple_dict_list, buckets_size)
-    put_pairs_in_buckets(file_name, buckets)
+    buckets = put_pairs_in_buckets(file_name, buckets)
+    buckets_table = format_buckets_display(buckets)
+    frequent_buckets_table = format_frequent_buckets(buckets, 4)
+    print(buckets_table)
+    print(frequent_buckets_table)

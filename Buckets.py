@@ -21,6 +21,7 @@ class Buckets:
         bucket_indices = []
         allowed_pair_in_buckets = []
         items_in_buckets = []
+        frequencies = []
 
         for i in range(len(self.buckets)):
             bucket_indices.append(i)
@@ -33,8 +34,9 @@ class Buckets:
             for item in self.buckets[i].get_pairs():
                 items_in_bucket.append(item)
 
+            frequencies.append(self.buckets[i].get_count())
             allowed_pair_in_buckets.append(allowed_pair_in_bucket)
             items_in_buckets.append(items_in_bucket)
 
-        return bucket_indices, allowed_pair_in_buckets, items_in_buckets
+        return bucket_indices, allowed_pair_in_buckets, items_in_buckets, frequencies
 

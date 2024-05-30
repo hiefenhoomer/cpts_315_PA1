@@ -1,7 +1,7 @@
 class Bucket:
     def __init__(self, bucket_index):
         self.allowed_pairs = []
-        self.pairs = []
+        self.pairs = {}
         self.count = 0
         self.bucket_index = bucket_index
 
@@ -13,7 +13,18 @@ class Bucket:
 
     def add_pair(self, item):
         self.count += 1
-        self.pairs.append(item)
+        if item not in self.pairs:
+            self.pairs[item] = 1
+        else:
+            self.pairs[item] += 1
 
     def get_pairs(self):
-        return self.pairs
+        pairs_list = []
+        for pair in self.pairs:
+            frequency = self.pairs[pair]
+            pairs_list.append((pair, frequency))
+        return pairs_list
+
+    def get_count(self):
+        return self.count
+
