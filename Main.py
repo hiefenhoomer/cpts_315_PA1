@@ -228,7 +228,7 @@ def generate_strings(formatted_top_5_confidence_lists):
     return formatted_str
 
 def create_text_file(text):
-    file = open('PA1_output.txt', 'w')
+    file = open('./text/PA1_output.txt', 'w')
     file.write(text)
     file.close()
 
