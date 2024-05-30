@@ -206,6 +206,7 @@ def pairs_from_tuples(tuple_dict):
 # Driver code to run the program.
 if __name__ == '__main__':
     tuple_dict_list = get_frequent_tuples(file_name, max_tuple_size, min_support)
+    print(tuple_dict_list)
     buckets = create_buckets(tuple_dict_list, buckets_size)
     buckets = put_pairs_in_buckets(file_name, buckets)
     buckets_table = format_buckets_display(buckets)
