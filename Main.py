@@ -1,8 +1,8 @@
 from itertools import combinations
 
-max_tuple_size = 2
-min_support = 1
-file_name = 'text/hw1.txt'
+max_tuple_size = 3
+min_support = 100
+file_name = 'text/browsing-data.txt'
 
 
 # Convert lines to baskets.
@@ -227,12 +227,16 @@ def generate_strings(formatted_top_5_confidence_lists):
 
     return formatted_str
 
+def create_text_file(text):
+    file = open('PA1_output.txt', 'w')
+    file.write(text)
+    file.close()
+
 
 # Driver code to run the program.
 if __name__ == '__main__':
     tuple_dict_list = get_frequent_tuples(file_name, max_tuple_size, min_support)
-    print(tuple_dict_list)
     confidence_dict_list = get_confidence(tuple_dict_list)
     top_5_confidence_lists = get_top_5_confidence(confidence_dict_list)
     formatted_top_5_confidence_lists = format_top_5_confidence_lists(top_5_confidence_lists)
-    print(generate_strings(formatted_top_5_confidence_lists))
+    create_text_file(generate_strings(formatted_top_5_confidence_lists))
